@@ -1,0 +1,73 @@
+/*
+CAPÍTULO IV: PERIFERICOS ESPECIALES
+Deber 4.1
+Objetivo: Realizar lecturas con CAD para determinar la velocidad 
+          de dos motores en DC con lcd para cada uno
+Nombre: Poleth Escobar
+Fecha: 15/05/2021
+Funciones:      analogRead(conversor)
+                           conversor -> A0-A5
+                analogWrite(pin,dutty) //duty= los datos se pueden movilizar 0-255
+                            pin->pines con ~, dutty (0-255)
+                            
+*/
+#include <LiquidCrystal.h>
+LiquidCrystal lcd(13,12,5,4,3,2);         //pines lcd
+LiquidCrystal lcd1(9,8,7,6,1,0);
+
+#define sw 7      //uso de #define para entrada digital del pin 6
+#define btn 6   //uso de #define para entrada digital del pin 7
+int conversor;                            //variable para adquirir datos (0-1023)
+int conversor1;
+float voltaje;                            //variable de conversion de conversor a voltaje
+float voltaje1;
+int dutty;                                //variable de desplazamiento o PWM
+int dutty1;
+void setup() {
+  lcd.begin(16,2);                        //inicializar el espacio de la LCD 16 columnas 2 filas
+  lcd1.begin(16,2);
+ // pinMode(sw,INPUT);    //eNTRADA DIGITAL DEL PIN 7
+  //pinMode(btn,INPUT); //eNTRADA DIGITAL DEL PIN 6
+}
+void loop() {
+  
+conversor=analogRead(A0);                    //lectura de la entrada analógica A0
+conversor1=analogRead(A1);                   //lectura de la entrada analógica A1
+voltaje1=(conversor1*0.5)/1023.0;            //Formula del voltaje
+dutty1=conversor1/4;                         //valor ciclo dutty (0-255)
+voltaje=(conversor*0.5)/1023.0;             
+dutty=conversor/4;
+
+
+analogWrite(11,dutty);                      //muestra o imprime lo que tiene la salida 11, dutty MOTOR 1
+analogWrite(10,dutty1);                     //muestra o imprime lo que tiene la salida 11, dutty MOTOR 2
+//se inicia la impresión de los dos LCD al mismo tiempo (El orden es ecencias)
+lcd.setCursor(0,0);
+lcd1.setCursor(0,0);
+lcd.print("CAD");
+lcd1.print("CAD");
+lcd.setCursor(5,0);
+lcd1.setCursor(5,0);
+lcd.print(conversor);
+lcd1.print(conversor1);
+lcd.setCursor(0,1);
+lcd1.setCursor(0,1);
+lcd.print("V: ");
+lcd1.print("V: ");
+lcd.setCursor(3,1);
+lcd1.setCursor(3,1);
+lcd.print(voltaje);
+lcd1.print(voltaje1);
+lcd.setCursor(9,1);
+lcd1.setCursor(9,1);
+lcd.print("PWM: ");
+lcd1.print("PWM: ");
+lcd.setCursor(13,1);
+lcd1.setCursor(13,1);
+lcd.print(dutty*100/255);
+lcd1.print(dutty1*100/255);
+delay(300);
+lcd.clear();
+lcd1.clear();
+
+}
