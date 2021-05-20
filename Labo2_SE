@@ -1,0 +1,200 @@
+#include<LiquidCrystal.h>
+#include<TimerOne.h>// libreria para el reloj
+#include<MsTimer2.h>
+LiquidCrystal lcd(13,12,11,10,9,8);
+const int leds[4]={4,5,6,7};
+long led1,led2,led3,led4;                             //variable para que los leds sean randomicos
+const int sensores[4]={34,35,37,37};                  //variable para los sensores y sus pines
+int va[4];            //variable para si un sensor se lo aplasta automáticamente sale el mensaje en la serial                               
+int prender=0;                                        //interrupccion de encendido 
+int modo;                                             //interrupcionde seleccion de modo
+int cont=0,minutos=-1,horas=0;                        //variables para el reloj
+int conversor=0,conversor1;                           //entradas analogicas
+int i,j=0,sen;                                        //variavles para los ciclos de leds y sensores
+
+
+
+//----------------------------------------------------
+
+void setup() {
+ Serial.begin(9600);
+ lcd.begin(16,2);
+ for(i=0;i<4;i++){
+  pinMode(leds[i],OUTPUT);
+ }
+ for(sen=0;sen<4;sen++){
+  pinMode(sensores[sen],INPUT);
+ }
+ i=0;
+ attachInterrupt(2,encedido,LOW);
+ attachInterrupt(3,modos,LOW);
+
+}
+//-----------------------------------------------------
+void loop() {
+  // put your main code here, to run repeatedly:
+  if(modo==2){
+    lcd.setCursor(0,1);
+    lcd.print("                 ");
+    conversor=analogRead(0);
+    conversor=map(conversor,0,1023,0,60);//conversor de 1023 a minutos 
+    conversor1=analogRead(1);
+    conversor1=map(conversor1,0,1023,0,24);//conversor de 1023 a horas
+    minutos=conversor;
+    horas=conversor1;
+    if(minutos<60){                               //minutos
+        minutos++;                                //minutos incrementa de 1 en 1
+      }
+      else{
+          minutos=0;
+          if(horas<24){
+            horas++;
+            }
+            else{
+              horas=0;
+              }
+        }
+      lcd.setCursor(0,0);
+      lcd.print(String("HORA ")+String(horas)+String(":")+String(minutos));   //imprecion del reloj en la LCD
+      conversor=0;
+  }
+}
+//-----------------------------------------------------------
+
+void reloj(){
+    if(minutos<60){                               //minutos
+        minutos++;                                //minutos incrementa de 1 en 1
+      }
+      else{
+          minutos=0;
+          if(horas<24){
+            horas++;
+            }
+            else{
+              horas=0;
+              }
+        }
+      lcd.setCursor(0,0);
+      lcd.print(String("HORA ")+String(horas)+String(":")+String(minutos));   //imprecion del reloj en la LCD
+      conversor=0;
+}
+//----------------------------------------------------------
+void encedido(){
+  switch(prender){
+    case 0:
+    Serial.println("---------WELCOME------------");
+
+   //case que inicia el reloj haciendo clic en el boton por 1 vez
+    Timer1.initialize(10000000);
+    Timer1.attachInterrupt(reloj);
+    prender++;
+    break;
+    case 1:
+    //case que pone nombre en el LCD, hace que este clic de lugar al boton de los modos
+    Serial.println("Seleccione el modo que desea visualizar: ");
+    Serial.println("1: Leds de forma random ");
+    Serial.println("2: Modificacion del reloj");
+    Serial.println("3: Sistema de Seguridad");
+    lcd.setCursor(0,1);
+    lcd.print("SELECT MODE");
+    delay (300000);
+    prender++;
+    break;
+
+    case 2:
+    //Apaga el reloj, desaciendo la interrupcion del boton de encendido y limpia el LCD
+    Timer1.detachInterrupt();
+    MsTimer2::stop();//para el reloj
+    lcd.clear();
+    for(i=0;i<4;i++){//si en caso de que los leds esten encendidos los apaga también
+      digitalWrite(leds[i],LOW);
+    }
+    minutos=-1, horas=0, prender=0, modo=0, cont=0, i=0, j=0;//Finaliza o  pone en cero todas las variables
+    break;
+    default:
+    prender=0;
+    break;
+    
+  }
+}
+//----------------------------------------------------------
+void modos(){
+  if(prender==2){//si se aplasto dos veces el boton de encendido da lugar a esta seccion de modos, caso contrario se mantiene estatico el ON
+    switch(modo){//case que selecciona el modo por medio de la interrupcion 3 
+      case 0:    
+      MsTimer2::set(1000,prenderleds);
+      MsTimer2::start();// inicio
+      modo++;
+      break;
+
+      case 1:
+      //case que para el reloj para poder modificar el reloj
+      cont=0;
+      MsTimer2::stop();
+      Timer1.detachInterrupt();
+      modo++;
+      break;
+      case 2:
+      //case que para iniciar nuevamente el reloj luego de haberse modificado
+      Timer1.initialize(10000000);
+      Timer1.attachInterrupt(reloj);
+      modo++;
+      break;     
+      case 3:
+      //case para iniciar el sistema de seguridad
+      MsTimer2::set(1000,activosensores);
+      MsTimer2::start();
+      modo=0;
+      break;      
+      default:
+      //default para que con otro clic al boton no haga nada
+      modo=0;
+      break;
+      
+    }
+  } 
+}
+//----------------------------------------------------------
+void prenderleds(){
+  if(cont<20){
+    lcd.setCursor(0,1);
+    lcd.print("LEDS ON");
+    cont++;
+    led1 = random(0,4);
+    led2 = random(0,4);
+    led3 = random(0,4);
+    led4 = random(0,4);
+    digitalWrite(leds[led1], HIGH);
+    delay(200);
+    digitalWrite(leds[led2], LOW);
+    delay(200); 
+    digitalWrite(leds[led3], HIGH);
+    delay(200);
+    digitalWrite(leds[led4], LOW);     
+    delay(200);
+  if(cont==20){
+    cont=20;
+    for(j=0;j<cont;j++){
+      for(i=0;i<4;i++){
+        digitalWrite(leds[i], LOW);
+        delay(200);
+       }
+    }
+   lcd.setCursor(0,1);
+   lcd.print("                "); 
+  }
+}
+}
+
+//----------------------------------------------------------
+void activosensores(){
+  Serial.println("MODO 4 ACTIVACION DE SENSORES");
+  for(sen=0;sen<4;sen++){
+    va[sen]=digitalRead(sensores[sen]);                //lee que los sensores 
+    delay(1000000);    
+    if(va[sen]==LOW){                                 //si un sensor se lo aplasta automáticamente sale el mensaje en la serial 
+         Serial.println("Sensor Activado"+String(sen));
+    }
+  //}
+ }
+}
