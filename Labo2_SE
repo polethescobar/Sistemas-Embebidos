@@ -1,10 +1,20 @@
+/*
+Escobar Poleth Laboratorio 2
+
+*/
 #include<LiquidCrystal.h>
 #include<TimerOne.h>// libreria para el reloj
 #include<MsTimer2.h>
 LiquidCrystal lcd(13,12,11,10,9,8);
 const int leds[4]={4,5,6,7};
 long led1,led2,led3,led4;                             //variable para que los leds sean randomicos
-const int sensores[4]={34,35,37,37};                  //variable para los sensores y sus pines
+const int s1= A2;                  
+const int s2= A3;
+const int s3= A7;
+const int s4= A6;
+
+
+
 int va[4];            //variable para si un sensor se lo aplasta automáticamente sale el mensaje en la serial                               
 int prender=0;                                        //interrupccion de encendido 
 int modo;                                             //interrupcionde seleccion de modo
@@ -22,9 +32,10 @@ void setup() {
  for(i=0;i<4;i++){
   pinMode(leds[i],OUTPUT);
  }
- for(sen=0;sen<4;sen++){
-  pinMode(sensores[sen],INPUT);
- }
+pinMode(s1,INPUT);
+pinMode(s2,INPUT);
+pinMode(s3,INPUT);
+pinMode(s4,INPUT);
  i=0;
  attachInterrupt(2,encedido,LOW);
  attachInterrupt(3,modos,LOW);
@@ -110,6 +121,7 @@ void encedido(){
       digitalWrite(leds[i],LOW);
     }
     minutos=-1, horas=0, prender=0, modo=0, cont=0, i=0, j=0;//Finaliza o  pone en cero todas las variables
+    
     break;
     default:
     prender=0;
@@ -143,6 +155,7 @@ void modos(){
       case 3:
       //case para iniciar el sistema de seguridad
       MsTimer2::set(1000,activosensores);
+      Serial.println("Sistema de Seguridad");
       MsTimer2::start();
       modo=0;
       break;      
@@ -188,13 +201,17 @@ void prenderleds(){
 
 //----------------------------------------------------------
 void activosensores(){
-  Serial.println("MODO 4 ACTIVACION DE SENSORES");
-  for(sen=0;sen<4;sen++){
-    va[sen]=digitalRead(sensores[sen]);                //lee que los sensores 
-    delay(1000000);    
-    if(va[sen]==LOW){                                 //si un sensor se lo aplasta automáticamente sale el mensaje en la serial 
-         Serial.println("Sensor Activado"+String(sen));
-    }
-  //}
- }
+  
+  if(digitalRead(s1)==LOW){
+    Serial.println("Sensor 1 Activado");
+  }
+  if(digitalRead(s2)==LOW){
+    Serial.println("Sensor 2 Activado");
+  }
+  if(digitalRead(s3)==LOW){
+    Serial.println("Sensor 3 Activado");
+  }
+  if(digitalRead(s4)==LOW){
+    Serial.println("Sensor 4 Activado");
+  } 
 }
