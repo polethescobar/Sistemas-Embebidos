@@ -1,0 +1,53 @@
+/*
+Nombre: Poleth Escobar
+Fecha: 20/05/2021
+Funciones:    MsTimer2:set(1000,flash);//1s periodo
+              MsTimer2: start();
+              MsTimer2: stop();
+*/
+#include <MsTimer2.h>
+#include <LiquidCrystal.h>
+LiquidCrystal lcd={13,12,11,10,9,8};            //definicion de los pines del LCD
+int segundos=0, minutos=0, horas=0;
+void setup() {
+lcd.begin(20,4);
+MsTimer2::set(1000,reloj);                      //configura el timer 2 a 1 segundo
+MsTimer2::start();                              //inicia el timer 2
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+
+}
+void reloj(){
+  if(segundos<60){                                //condicion de segundos
+    segundos++;                                   //segundo de uno en uno  
+    }
+    else{
+      segundos=0;                                 //llega a 60 y segundos se pone en cero
+      if(minutos<60){
+        minutos++;
+      }
+      else{
+          minutos=0;
+          if(horas<24){
+            horas++;
+            }
+            else{
+              horas=0;
+              }
+        }
+        
+      }
+      lcd.clear();//borra el lcd
+      lcd.setCursor(2,0);
+      lcd.println("SISTEMAS EMBEBIDOS");
+      lcd.setCursor(3,1);
+      lcd.println("Poleth Escobar");
+      lcd.setCursor(2,2);
+      lcd.println("Hora : Min : Seg");
+      lcd.setCursor(4,3);
+      lcd.print(String(horas)+String("  :  ")+String(minutos)+String("  :  ")+String(segundos));
+  
+    }
+  
