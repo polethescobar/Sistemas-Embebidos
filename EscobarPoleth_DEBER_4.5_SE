@@ -1,0 +1,85 @@
+/*
+Escobar Poleth
+Deber 5.1
+Sistemas Embebidos
+
+*/
+#include <EEPROM.h>
+#include <LiquidCrystal.h>            //libreria LCD
+#include <Keypad.h>
+LiquidCrystal lcd(14,15,16,17,18,19);   //seleccion de pines para LCD
+const int led1=10;                      //led para mostrar que se estan almacenando los datos
+int cont = 0; //variable para cambiar posicion de lectura o escritura de EEPROM y Matriz
+int enc=0;   //variable para el cambio de pantalla
+char almacena[15];                                   // Tamaño de las contraseñas
+int i=0;                                            // contador inciado en cero
+int h;
+int valor=0;                                        // contador iniciado en cero 
+char tecla;
+//------------------------------------------------------------------------------------
+const byte filas =4;
+const byte columnas=4;
+byte pinesFilas[] = {9,8,7,6};
+byte pinesColumnas [] = {5,4,3,2};
+char teclas [4][4]= {{'1','2','3','A'},
+                     {'4','5','6','B'},
+                     {'7','8','9','C'},
+                     {'*','0','#','D'}};
+Keypad teclado1 = Keypad(makeKeymap(teclas), pinesFilas, pinesColumnas, filas, columnas);     //para el teclado
+//--------------------------------------------------------------------------------------
+
+void setup() {
+lcd.begin(20,2);
+ lcd.print("* grabar, # muestra");
+pinMode(led1,OUTPUT);
+
+}
+  
+ //----------------------------------------------------------------------------------
+void loop() {
+ 
+ char tecla = teclado1.getKey();  
+ if(tecla=='*'){
+  cont=0;
+  enc=1;
+  lcd.clear();
+ }
+ if(enc==1){
+    lcd.setCursor(0,0);
+    lcd.write("Ingrese new pin");
+    char tecla = teclado1.getKey();                 //guardamos el caracter de la tecla presionada en la variable tecla
+    if (tecla != NO_KEY){                            //si "tecla" es diferente de "no tecla"... (si se presiona una tecla)
+    almacena[valor] = tecla;                        //almacena en la posicion "digito" de "codigo" el caracter de la "tecla" presionada
+    lcd.setCursor(valor + 3, 2);                    //se posiciona el cursor convenientemente
+    lcd.print(tecla);                                
+    valor = valor + 1;                              //incrementar la variable digito para almacenar los 14 digitos presionados
+    cont++;
+    for(int h=0;h<16;h++){
+    EEPROM.write(h,almacena[h]);
+    }
+    digitalWrite(led1,HIGH);
+    delay(200);
+    digitalWrite(led1,LOW);
+    delay(200); 
+     
+    if (cont == 15) {
+    cont = 0;
+    enc = 0;
+  }
+    }
+ }else 
+    if(tecla=='#'){
+    if(enc==0){ 
+    lcd.setCursor(0,0);
+    lcd.print("Hola nuevamente");
+    lcd.setCursor(3,1);
+    for(int k=0;k<16;k++){
+    tecla=EEPROM.read(k);
+    Serial.println(tecla);
+    lcd.print(tecla);
+    }
+    delay(1000);
+    i=0;
+    }
+ } 
+}
