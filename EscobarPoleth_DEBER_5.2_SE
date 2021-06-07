@@ -1,0 +1,66 @@
+/*
+ * DEBER 5.2
+Unidad V: Funciones Específicas
+Código 23: Manejo de Modos Sleep
+Objetivo: Realizar un control de modos sleep por medio de interrupciones
+Modo Sleep y Ahorro de Batería
+Consumo es de 100-500mA
+Ahorro de batería es  hasta 10 mA
+
+
+Librerías: avr/sleep.h
+            avr/power.h
+*/
+
+#include<avr/sleep.h>
+#include <avr/power.h>
+#include <avr/wdt.h>
+#include <MsTimer2.h>
+#include <EEPROM.h>
+//---------------------------------------------------------
+int dato;
+int on=0;
+
+void(*resetFunc) (void)=0;                //void funcion de reseteo
+
+void setup() {
+Serial.begin(9600);
+Serial.println("SETUP");  
+dato=EEPROM.read(0);
+if(dato==0){
+  set_sleep_mode(SLEEP_MODE_STANDBY);
+  sleep_enable();
+  wdt_enable(WDTO_8S);
+  EEPROM.write(0,1);  
+}
+else{
+  sleep_disable();
+  EEPROM.write(0,0);
+  MsTimer2::start();
+  MsTimer2::set(1000,tiempo);               //timer 2 a 1 segundo
+
+}
+attachInterrupt(0,encender,LOW);///////////
+}
+
+void loop() {
+if(dato==0){
+  Serial.println("MODO DORMIDO");
+  delay(20000);/////////////
+  sleep_mode();
+}
+else{
+  Serial.println("MODO READY");
+  delay(1000);
+}
+}
+
+void tiempo(){
+  Serial.println("DORMIDO");
+  delay(2000);
+  sleep_mode();
+}
+void encender(){
+  resetFunc();            //llamo al método
+  
+}
